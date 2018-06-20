@@ -1,0 +1,48 @@
+#!/usr/bin/env shpp
+
+CMAKE_SRC = "cmake_minimum_required(VERSION 2.8)
+project({PROJECT_NAME})
+
+file(GLOB SRC ${CMAKE_SOURCE_DIR}/src/*.cc)
+add_executable({PROJECT_NAME} ${SRC})
+
+install(TARGETS {PROJECT_NAME} RUNTIME DESTINATION bin)
+"
+
+MAIN_SRC = "#include <iostream>
+
+int main(int argc, char **argv) {
+  std::cout << \"Hello, world!\" << std::endl;
+  return 0;
+}
+"
+
+func gen_cmake(project_name) {
+  code = CMAKE_SRC.replace("{PROJECT_NAME}", project_name)
+
+  mkdir -p ${project_name}
+  echo ${code} > ${project_name}/CMakeLists.txt
+}
+
+func gen_main(project_name) {
+  code = MAIN_SRC
+
+  dir = project_name + "/src"
+  mkdir -p ${dir}
+  echo ${code} > ${dir}/main.cc
+}
+
+func gen_project(project_name) {
+  gen_cmake(project_name)
+  gen_main(project_name)
+  mkdir -p ${project_name}/build
+}
+
+if __main__ {
+  if len(sys.argv) != 2 {
+    print_err("usage:\n  create-cmake-app <project name>")
+    exit 1
+  }
+
+  gen_project(sys.argv[1])
+}
